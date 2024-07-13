@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+	  <PackageReference Include="MediatR" Version="12.2.0" />
+	  <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.5" />
+	  <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.2" />
+	  <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0" />
+	  <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+	  <PackageReference Include="StackExchange.Redis" Version="2.7.20" />
+	  <PackageReference Include="Zack.AnyDBConfigProvider" Version="1.1.4" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Chen.ASPNETCore\Chen.ASPNETCore.csproj" />
+	  <ProjectReference Include="..\Chen.Commons\Chen.Commons.csproj" />
+	  <ProjectReference Include="..\Chen.EventBus\Chen.EventBus.csproj" />
+	  <ProjectReference Include="..\Chen.Infrastructure\Chen.Infrastructure.csproj" />
+	  <ProjectReference Include="..\Chen.JWT\Chen.JWT.csproj" />
+	</ItemGroup>
+	
+</Project>

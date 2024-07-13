@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.1" />
+		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0-beta.2" />
+	</ItemGroup>
+	
+  <ItemGroup>
+    <ProjectReference Include="..\Chen.Commons\Chen.Commons.csproj" />
+    <ProjectReference Include="..\Chen.Infrastructure\Chen.Infrastructure.csproj" />
+    <ProjectReference Include="..\FileService.SDK.NETCore\FileService.SDK.NETCore.csproj" />
+    <ProjectReference Include="..\YouShowService.Domain\YouShowService.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

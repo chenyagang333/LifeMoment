@@ -1,0 +1,7 @@
+# @YouShowService.WebAPI_HostAddress = http://localhost:5113
+@YouShowService.WebAPI_HostAddress = https://localhost:7059
+
+GET {{YouShowService.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
