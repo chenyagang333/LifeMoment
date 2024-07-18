@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Chen.Commons.FileUtils;
 using IdentityService.Domain.DTO;
+using IdentityService.Domain.DTO.UserChat;
 using IdentityService.Domain.Entities;
+using IdentityService.Domain.Entities.UserChat;
 using IdentityService.Domain.Notifications;
 using System.Text.Json;
 
@@ -17,7 +19,6 @@ namespace IdentityService.WebAPI
         {
             CreateMap<User, UserDTO>();
             CreateMap<User, AddUserEvent>();
-
         }
   
     }

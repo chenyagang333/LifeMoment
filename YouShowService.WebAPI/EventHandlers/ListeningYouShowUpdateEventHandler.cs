@@ -26,13 +26,13 @@ namespace YouShowService.WebAPI.EventHandlers
                 {
                     if (eventData.Field == "UserName")
                     {
-                        ctx.YouShows.Where(x => x.UserId == eventData.UserId)
-                            .ExecuteUpdate(s => s.SetProperty(e => e.UserName, e => value));
+                        await ctx.YouShows.Where(x => x.UserId == eventData.UserId)
+                            .ExecuteUpdateAsync(s => s.SetProperty(e => e.UserName, e => value));
                     }
                     else if (eventData.Field == "UserAvatar")
                     {
-                        ctx.YouShows.Where(x => x.UserId == eventData.UserId)
-                            .ExecuteUpdate(s => s.SetProperty(e => e.UserAvatarURL, e => value));
+                        await ctx.YouShows.Where(x => x.UserId == eventData.UserId)
+                            .ExecuteUpdateAsync(s => s.SetProperty(e => e.UserAvatarURL, e => value));
                     }
                 }
             }
