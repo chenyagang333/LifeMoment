@@ -14,7 +14,7 @@ namespace IdentityService.Infrastructure.Configs.UserChat
         public void Configure(EntityTypeBuilder<UserGroupsToUser> builder)
         {
             builder.ToTable("User_GroupsToUser");
-            builder.HasIndex(x => x.UserId); // 索引 查询
+            builder.HasIndex(x => new {x.UserId,x.UserGroupsId}); // 索引 查询
             builder.HasIndex(x => x.UserGroupsId); // 索引 更新
 
         }

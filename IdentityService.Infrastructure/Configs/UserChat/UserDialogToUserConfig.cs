@@ -14,7 +14,7 @@ namespace IdentityService.Infrastructure.Configs.UserChat
         public void Configure(EntityTypeBuilder<UserDialogToUser> builder)
         {
             builder.ToTable("User_DialogToUser");
-            builder.HasIndex(x => x.UserId); // 索引 根据用户Id查询
+            builder.HasIndex(x => new { x.UserId, x.UserDialogId }); // 索引 根据用户Id查询
             builder.HasIndex(x => x.ToUserId); // 索引 更新用
         }
     }

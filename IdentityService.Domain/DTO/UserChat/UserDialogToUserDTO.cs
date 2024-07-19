@@ -1,5 +1,6 @@
 ﻿using Chen.DomainCommons.Models;
 using IdentityService.Domain.Entities.UserChat;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,20 +9,24 @@ using System.Threading.Tasks;
 
 namespace IdentityService.Domain.DTO.UserChat
 {
-    public record UserDialogToUserDTO : UserDialogToUser, IHasModificationTime
+    public record UserDialogToUserDTO : UserDialogToUser
     {
+        public UserDialogToUserDTO():base(0,0,0,"","")
+        {
+            
+        }
         public string LastMessage { get; set; } // 显示消息
-        public DateTime? LastModificationTime { get; set; }
+        public DateTime? LastPostMessageTime { get; set; }
         public int UnreadCount { get; set; } // 未读信息数
 
-        public UserDialogToUserDTO UpdateLastMessage(string msg)
+        public UserDialogToUserDTO UpdateLastMessage(string? msg)
         {
             LastMessage = msg;
             return this;
         }
-        public UserDialogToUserDTO UpdateLastModificationTime(DateTime time)
+        public UserDialogToUserDTO UpdateLastPostMessageTime(DateTime time)
         {
-            LastModificationTime = time;
+            LastPostMessageTime = time;
             return this;
         }
         public UserDialogToUserDTO UpdateUnreadCount(int count)

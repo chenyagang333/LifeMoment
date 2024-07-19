@@ -8,10 +8,14 @@ using System.Threading.Tasks;
 
 namespace IdentityService.Domain.DTO.UserChat
 {
-    public record UserGroupsToUserDTO : UserGroupsToUser, IHasModificationTime
+    public record UserGroupsToUserDTO : UserGroupsToUser
     {
+        public UserGroupsToUserDTO() : base(0, 0, "", "")
+        {
+
+        }
         public string LastMessage { get; set; } // 显示消息
-        public DateTime? LastModificationTime { get; set; }
+        public DateTime? LastPostMessageTime { get; set; }
         public int UnreadCount { get; set; } // 未读信息数
 
         public UserGroupsToUserDTO UpdateLastMessage(string msg)
@@ -19,9 +23,9 @@ namespace IdentityService.Domain.DTO.UserChat
             LastMessage = msg;
             return this;
         }
-        public UserGroupsToUserDTO UpdateLastModificationTime(DateTime time)
+        public UserGroupsToUserDTO UpdateLastPostMessageTime(DateTime time)
         {
-            LastModificationTime = time;
+            LastPostMessageTime = time;
             return this;
         }
         public UserGroupsToUserDTO UpdateUnreadCount(int count)
