@@ -1,5 +1,6 @@
 ﻿using Chen.EventBus;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace CommonInitializer
 {
     public static class ApplicationBuilderExtensions
     {
-        public static IApplicationBuilder UseChenDefault(this IApplicationBuilder app)
+        public static IApplicationBuilder UseChenDefault(this WebApplication app)
         {
             app.UseEventBus();
             app.UseCors(); // 启用 Cors

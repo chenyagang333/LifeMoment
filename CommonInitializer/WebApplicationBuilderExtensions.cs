@@ -27,6 +27,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Http;
 using System.Data;
 using System.Data.Common;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CommonInitializer
 {
@@ -66,7 +67,8 @@ namespace CommonInitializer
             builder.Services.AddAuthorization();
             builder.Services.AddAuthentication();
 
-            JWTOptions? jwtOpt = configuration.GetSection("JWT").Get<JWTOptions>();
+            JWTOptions jwtOpt = configuration.GetSection("JWT").Get<JWTOptions>()!;
+            jwtOpt.SignalRMapHubPattern = initOptions.SignalRMapHubPattern; // 设置SignalR的路径前缀
             builder.Services.AddJWTAuthentication(jwtOpt);
 
             // 启动 Swagger 中的【Authorize】按钮。这样就不用在每个项目的 AddSwaggerGen 中单独配置了。
@@ -148,7 +150,6 @@ namespace CommonInitializer
                 // 添加 AddAutoMapper
                 builder.Services.AddAutoMapper(initOptions.ProfileAssemblyMarkerTypes);
             }
-
         }
     }
 }

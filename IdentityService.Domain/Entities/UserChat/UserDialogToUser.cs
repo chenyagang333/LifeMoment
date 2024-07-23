@@ -17,7 +17,7 @@ namespace IdentityService.Domain.Entities.UserChat
             long ToUserId,  // 对话 用户ID // 加索引，用来更新冗余数据
             string ToUserName, // 对话 用户名称 // 冗余
             string ToUserAvatar  // 对话 用户头像 // 冗余
-        ) : BaseEntity, IHasCreateTime, IHasDeleteTime
+        ) : BaseEntity, IHasCreateTime, IHasDeleteTime,ISoftDelete
     {
 
         public DateTime? TopTime { get; set; } = null; // 窗口置顶时间
@@ -31,10 +31,12 @@ namespace IdentityService.Domain.Entities.UserChat
 
         public DateTime? DeletionTime { get; set; } // 删除对话时，再次打开对话，消息记录只显示删除时间以后的
 
+        public bool IsDeleted { get; set; } = false;
 
         public UserDialogToUser UpdateDeletionTime()
         {
             DeletionTime = DateTime.Now;
+            SoftDelete();
             return this;
         }
 
@@ -44,8 +46,14 @@ namespace IdentityService.Domain.Entities.UserChat
             return this;
         }
 
-
-
-
+        public void SoftDelete()
+        {
+            IsDeleted = true;
+        }
+        public UserDialogToUser SoftDelete(bool isDelete = true)
+        {
+            IsDeleted = isDelete;
+            return this;
+        }
     }
 }

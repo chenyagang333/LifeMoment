@@ -14,5 +14,9 @@
         /// 数据库连接字符串的Key
         /// </summary>
         public string? ConStrKey { get; set; }
+        /// <summary>
+        /// 使用SignalR的 app.MapHub<MyHub>("/MyHub"); 中的参数
+        /// </summary>
+        public string? SignalRMapHubPattern { get; set; }
     }
 }

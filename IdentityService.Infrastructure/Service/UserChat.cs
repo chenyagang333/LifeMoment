@@ -6,6 +6,9 @@ using IdentityService.Domain.Entities.UserChat;
 using IdentityService.Domain.IRespository;
 using IdentityService.Domain.IService;
 using IdentityService.Domain.ServiceEntities.UserChat;
+using IdentityService.Infrastructure.Hubs;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -20,38 +23,73 @@ namespace IdentityService.Infrastructure.Service
         private readonly UserDbContext context;
         private readonly IMapper mapper;
         private readonly IUserRespository userRespository;
+        private readonly IHubContext<UserChatHub> hubContext;
 
-        public UserChat(UserDbContext context, IMapper mapper, IUserRespository userRespository)
+        public UserChat(UserDbContext context, IMapper mapper, IUserRespository userRespository, IHubContext<UserChatHub> hubContext)
         {
             this.context = context;
             this.mapper = mapper;
             this.userRespository = userRespository;
+            this.hubContext = hubContext;
         }
 
-        #region 创建私聊和群聊对话 --- 添加消息领域事件
+
+        #region 群聊或私聊会话列表 与用户关联表
+
+        #region Create
 
         // 创建私聊
         public async Task CreateUserDialog(CreateUserDialogEntity e)
         {
-            // 添加私聊会话记录
-            var userDialog = new UserDialog();
-            await context.UserDialogs.AddAsync(userDialog);
-            await context.SaveChangesAsync(); // 保存后拿到Id
-            // 添加私聊会话记录用户关联表
-            var userDialogToUser1 = new UserDialogToUser(e.userId, e.toUserId, e.toUserName, e.toUserAvatar, userDialog.Id);
-            var userDialogToUser2 = new UserDialogToUser(e.toUserId, e.userId, e.userName, e.userAvatar, userDialog.Id);
-            List<UserDialogToUser> userDialogToUsers = [userDialogToUser1, userDialogToUser2];
-            await context.BulkInsertAsync(userDialogToUsers);
-            // 添加新建对话后的 打招呼消息
-            await CreateDialogMessage(userDialog.Id, e.userId, e.toUserId, $"👋你好鸭～，我是{e.userName}，聊聊天吧。");
-            // 保存更改
-            await context.SaveChangesAsync();
-        }
-        // 创建私聊
-        public async Task CreateUserDialog(Func<CreateUserDialogEntity> func)
-        {
-            var e = func();
-            await CreateUserDialog(e);
+            long dialogId;
+            // 检查对话是否存在，
+            var userDialogToUser_1 = await context.UserDialogToUsers
+                .FirstOrDefaultAsync(x => x.ToUserId == e.toUserId && x.UserId == e.userId);
+            var userDialogToUser_2 = await context.UserDialogToUsers
+                .FirstOrDefaultAsync(x => x.ToUserId == e.userId && x.UserId == e.toUserId);
+            // 有一个为NULL则认为不存在，代表第一次创建对话
+            if (userDialogToUser_1 == null || userDialogToUser_2 == null)
+            {
+                var userDialog = new UserDialog();
+                try
+                {
+                    using var transaction = context.Database.BeginTransaction();
+                    // 添加私聊会话记录
+                    await context.UserDialogs.AddAsync(userDialog);
+                    await context.SaveChangesAsync(); // 保存后拿到Id
+                                                      // 添加私聊会话记录用户关联表
+                    var userDialogToUser1 = new UserDialogToUser(e.userId, e.toUserId, userDialog.Id, e.toUserName, e.toUserAvatar);
+                    var userDialogToUser2 = new UserDialogToUser(e.toUserId, e.userId, userDialog.Id, e.userName, e.userAvatar);
+                    List<UserDialogToUser> userDialogToUsers = [userDialogToUser1, userDialogToUser2];
+                    await context.BulkInsertAsync(userDialogToUsers);
+                    await context.SaveChangesAsync();
+                    transaction.Commit();
+                }
+                catch (Exception)
+                {   // 创建对话失败
+                    await SendStatus(e.userId, "CreateUserDialogResult", 400);
+                    throw;
+                }
+                // 添加新建对话后的 打招呼消息
+                CreateDialogMessage(userDialog.Id, e.userId, e.toUserId, $"👋你好鸭～，我是{e.userName}，聊聊天吧。");
+                // 保存更改
+                dialogId = userDialog.Id;
+            }
+            else
+            {
+                userDialogToUser_1.SoftDelete(false); // 如果删除了聊天，则打开
+                userDialogToUser_2.SoftDelete(false); // 
+                dialogId = userDialogToUser_1.UserDialogId;
+                await context.SaveChangesAsync();
+            }
+            if (dialogId > 0)
+            {
+                // 对方的对话框显示发起聊天用户的信息
+                var toUserDialog = new UserDialogToUser(e.toUserId, dialogId, e.userId, e.userName, e.userAvatar);
+                await SendData(e.toUserId, "CreateUserDialog", toUserDialog);
+                // 返回对话框的创建状态
+                await SendStatus(e.userId, "CreateUserDialogResult", 200);
+            }
         }
         // 创建群聊
         public async Task CreateUserGroups(CreateUserGroupsEntity e)
@@ -59,30 +97,35 @@ namespace IdentityService.Infrastructure.Service
             var names = e.CreateUserGroupsToUsers.Select(x => new { x.userName });
             var name = string.Join("、", names);
             var userGroups = new UserGroups().UpdateName(name).UpdateAdminId(e.admainId).UpdateIcon(e.icon);
-            await context.UserGroups.AddAsync(userGroups);
-            await context.SaveChangesAsync(); // 拿到群聊Id
-            List<UserGroupsToUser> userGroupsToUsers = new List<UserGroupsToUser>();
-            foreach (var item in e.CreateUserGroupsToUsers)
+            try
             {
-                UserGroupsToUser entity = new(userGroups.Id, item.userId, name, e.icon);
-                userGroupsToUsers.Add(entity);
+                using var transaction = context.Database.BeginTransaction();
+                await context.UserGroups.AddAsync(userGroups);
+                await context.SaveChangesAsync(); // 拿到群聊Id
+                List<UserGroupsToUser> userGroupsToUsers = new List<UserGroupsToUser>();
+                foreach (var item in e.CreateUserGroupsToUsers)
+                {
+                    UserGroupsToUser entity = new(userGroups.Id, item.userId, name, e.icon);
+                    userGroupsToUsers.Add(entity);
+                }
+                // 批量插入 UserGroupsToUser
+                await context.BulkInsertAsync(userGroupsToUsers);
+                await context.SaveChangesAsync();
+                transaction.Commit();
             }
-            // 批量插入 UserGroupsToUser
-            await context.BulkInsertAsync(userGroupsToUsers);
+            catch (Exception)
+            {
+                await SendStatus(e.admainId, "CreateUserGroupsResult", 400);
+                throw;
+            }
+            await SendData(e.CreateUserGroupsToUsers.Select(x => x.userId).Where(x => x != e.admainId), "CreateUserGroups", userGroups);
+            await SendStatus(e.admainId, "CreateUserGroupsResult", 200);
             // 新建群聊提示信息
             await CreateGroupsMessage(new(userGroups.Id, 0, "System", "", $"{names} 加入了群聊"));
             // 保存更改
-            await context.SaveChangesAsync();
-        }
-        public async Task CreateUserGroups(Func<CreateUserGroupsEntity> func)
-        {
-            var e = func();
-            await CreateUserGroups(e);
         }
 
         #endregion
-
-        #region 群聊或私聊会话列表 与用户关联表
 
         #region Get
 
@@ -122,8 +165,8 @@ namespace IdentityService.Infrastructure.Service
                 x.UpdateUnreadCount(item.UnreadCount);
                 x.UpdateLastMessage(item.LastMessageData.PostMessages).UpdateLastPostMessageTime(item.LastMessageData.CreateTime);
             });
-            // 筛选最后一条信息时间大于删除时间的item
-            return dialogListDTO.Where(x => x.LastPostMessageTime > x.DeletionTime);
+            // 筛选未删除的对话框
+            return dialogListDTO.Where(x => !x.IsDeleted);
 
         }
         // 回去群聊会话列表
@@ -162,8 +205,8 @@ namespace IdentityService.Infrastructure.Service
                 var item2 = UnreadCounts.First(x => item.UserGroupsId == x.UserGroupsId);
                 item.UpdateUnreadCount(item2.UnreadCount);
             });
-            // 筛选最后一条信息时间大于删除时间的item
-            return userGroupsToUsersDTO.Where(x => x.LastPostMessageTime > x.DeletionTime);
+            // 筛选未删除的对话框
+            return userGroupsToUsersDTO.Where(x => !x.IsDeleted);
         }
 
 
@@ -256,7 +299,7 @@ namespace IdentityService.Infrastructure.Service
         }
 
         // 获取群聊会话信息
-        public async Task<(IEnumerable<UserGroupsMessageDTO> list,bool over)> GetUserGroupsMessageByUserGroupsId(long userId, long userGroupsId, int pageSize, long beginId = 0)
+        public async Task<(IEnumerable<UserGroupsMessageDTO> list, bool over)> GetUserGroupsMessageByUserGroupsId(long userId, long userGroupsId, int pageSize, long beginId = 0)
         {
             bool over = false; // 提示前端查询是否结束
             var baseQuery = context.UserGroupsMessages.Where(x => x.UserGroupsId == userGroupsId);
@@ -284,7 +327,7 @@ namespace IdentityService.Infrastructure.Service
             // 防止用户连续删除数据数量大于等于 pageSize 导致查该页数据为0
             if (result.Count() > 0 && result.All(x => x.Deleted))
             {
-                (result,over) = await GetUserGroupsMessageByUserGroupsId(userId, userGroupsId, pageSize, beginId);
+                (result, over) = await GetUserGroupsMessageByUserGroupsId(userId, userGroupsId, pageSize, beginId);
             }
             // 筛除该用户已删除的数据，如果
             result = userGroupsMessagesDTO.Where(x => !x.Deleted);
@@ -296,7 +339,7 @@ namespace IdentityService.Infrastructure.Service
                 over = true;
             }
             if (result.Count() == 0) { over = true; }
-            return (result,over);
+            return (result, over);
         }
 
         #endregion
@@ -322,8 +365,21 @@ namespace IdentityService.Infrastructure.Service
         {
             var userDialogMessage = new UserDialogMessage(userDialogId, userId, toUserId)
                 .UpdatePostMessages(message);
-            await context.UserDialogMessages.AddRangeAsync(userDialogMessage);
-            await context.SaveChangesAsync();
+            try
+            {
+                await context.UserDialogMessages.AddAsync(userDialogMessage);
+                await context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                await hubContext.Clients.User(userId.ToString()).SendAsync("CreateDialogMessageResult", new { StatusCode = 400 });
+                throw;
+            }
+            if (userDialogMessage.Id > 0)
+            {
+                await hubContext.Clients.User(toUserId.ToString()).SendAsync("CreateDialogMessage", new { data = userDialogMessage });
+                await hubContext.Clients.User(userId.ToString()).SendAsync("CreateDialogMessageResult", new { StatusCode = 200 });
+            }
         }
         // 新增群聊信息
         public async Task CreateGroupsMessage(UserGroupsMessage userGroupsMessage)
@@ -374,10 +430,24 @@ namespace IdentityService.Infrastructure.Service
             await context.SaveChangesAsync();
         }
 
-        #endregion
 
         #endregion
 
+        #endregion
 
+        public Task SendStatus(long userId, string method, int statusCode)
+        {
+            return hubContext.Clients.User(userId.ToString()).SendAsync(method, new { StatusCode = statusCode });
+        }
+
+        public Task SendData(long userId, string method, object data)
+        {
+            return hubContext.Clients.User(userId.ToString()).SendAsync(method, new { data = data });
+        }
+
+        public Task SendData(IEnumerable<long> userIds, string method, object data)
+        {
+            return hubContext.Clients.Users(userIds.Select(x => x.ToString())).SendAsync(method, new { data = data });
+        }
     }
 }

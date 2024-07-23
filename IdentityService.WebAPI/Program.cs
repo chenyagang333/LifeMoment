@@ -1,13 +1,17 @@
 using CommonInitializer;
+using IdentityService.Domain.DTO.ACustomProfile;
 using IdentityService.Domain.Entities;
 using IdentityService.Domain.IRespository;
 using IdentityService.Domain.IService;
 using IdentityService.Infrastructure;
+using IdentityService.Infrastructure.Hubs;
 using IdentityService.Infrastructure.Respository;
 using IdentityService.Infrastructure.Service;
 using IdentityService.WebAPI;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,13 +19,22 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 默认初始化配置
 builder.ConfigureDbConfiguration();
-builder.ConfigureExtraServices(new InitializerOptions
+var initializerOptions = new InitializerOptions
 {
     EventBusQueueName = "IdentityService.WebAPI",
     LogFilePath = "d:/temp/IdentityService.log",
-    ProfileAssemblyMarkerTypes = [typeof(CustomProfile)],
-    ConStrKey = "IdentityDb"
+    ProfileAssemblyMarkerTypes = [typeof(CustomProfile), typeof(UserChatProfile)],
+    ConStrKey = "IdentityDb",
+    SignalRMapHubPattern = "/UserChatHub"
 
+};
+builder.ConfigureExtraServices(initializerOptions);
+string redisConnStr = builder.Configuration.GetValue<string>("Redis:ConnStr")!;
+//builder.Services.AddSignalR();
+// AddSignalR 的分布式部署，通过微软提供的 AddStackExchangeRedis 实现，多个服务之间的通信
+builder.Services.AddSignalR().AddStackExchangeRedis(redisConnStr, options =>
+{
+    options.Configuration.ChannelPrefix = RedisChannel.Literal("SignalR_");
 });
 
 
@@ -59,11 +72,11 @@ builder.Services.AddIdentityCore<User>(opt =>
     opt.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultEmailProvider;
     opt.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
 });
-IdentityBuilder identityBuilder = new(typeof(User), typeof(Role), builder.Services);
+IdentityBuilder identityBuilder = new(typeof(User), typeof(IdentityService.Domain.Entities.Role), builder.Services);
 identityBuilder.AddEntityFrameworkStores<UserDbContext>().AddDefaultTokenProviders()
     //.AddRoleValidator<RoleValidator<Role>>()
     .AddUserManager<IdUserManager>().
-    AddRoleManager<RoleManager<Role>>();
+    AddRoleManager<RoleManager<IdentityService.Domain.Entities.Role>>();
 
 #endregion
 
@@ -91,5 +104,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseChenDefault();
+
+app.MapHub<UserChatHub>(initializerOptions.SignalRMapHubPattern);
+
 app.MapControllers();
 app.Run();

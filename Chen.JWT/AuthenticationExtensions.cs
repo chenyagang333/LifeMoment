@@ -14,14 +14,14 @@ namespace Chen.JWT
     {
         // 向 IServiceCollection 添加 JWT 认证服务。
         // JwtBearerDefaults.AuthenticationScheme 表示用于 JWT Bearer 认证的默认方案。
-        public static AuthenticationBuilder AddJWTAuthentication(this IServiceCollection services,JWTOptions jwtOpt)
+        public static AuthenticationBuilder AddJWTAuthentication(this IServiceCollection services, JWTOptions jwtOpt)
         {
             return services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(x =>
+                .AddJwtBearer(configOptions =>
                 {
                     // 配置JWT Bearer 认证选项。
                     // 这包括设置令牌参数。
-                    x.TokenValidationParameters = new()
+                    configOptions.TokenValidationParameters = new()
                     {
                         // 验证令牌的发行者（Issuer）。
                         ValidateIssuer = true,
@@ -38,6 +38,24 @@ namespace Chen.JWT
                         // 将签名密钥设置为 jwtOpt.Key 提供的值
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOpt.Key))
                     };
+                    if (!string.IsNullOrEmpty(jwtOpt.SignalRMapHubPattern))
+                    {
+                        // AddSignalR(托管服务) 和 JWT 关联部分
+                        configOptions.Events = new JwtBearerEvents
+                        {
+                            OnMessageReceived = context =>
+                            {
+                                var accessToken = context.Request.Query["access_token"];
+                                var path = context.Request.Path;
+                                if (!string.IsNullOrEmpty(accessToken) &&
+                                    path.StartsWithSegments(jwtOpt.SignalRMapHubPattern))
+                                {
+                                    context.Token = accessToken;
+                                }
+                                return Task.CompletedTask;
+                            }
+                        };
+                    }
                 });
         }
 

@@ -15,7 +15,7 @@ namespace IdentityService.Infrastructure.Configs.UserChat
         {
             builder.ToTable("User_DialogToUser");
             builder.HasIndex(x => new { x.UserId, x.UserDialogId }); // 索引 根据用户Id查询
-            builder.HasIndex(x => x.ToUserId); // 索引 更新用
+            builder.HasIndex(x => new { x.ToUserId, x.UserId }); // 索引 一级索引 更新冗余数据用 // 二级索引用来查询是否存在两人的对话
         }
     }
 }
