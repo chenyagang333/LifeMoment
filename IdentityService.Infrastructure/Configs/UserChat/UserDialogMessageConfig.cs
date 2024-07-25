@@ -14,7 +14,7 @@ namespace IdentityService.Infrastructure.Configs.UserChat
         public void Configure(EntityTypeBuilder<UserDialogMessage> builder)
         {
             builder.ToTable("User_DialogMessage");
-            builder.HasIndex(x => new { x.UserDialogId, x.ToUserId,x.Received }); // 索引
+            builder.HasIndex(x => new { x.UserDialogId, x.ToUserId,x.MarkRead }); // 索引
 
         }
     }

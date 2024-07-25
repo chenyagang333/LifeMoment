@@ -2,28 +2,30 @@
 using IdentityService.Domain.Entities.UserChat;
 using IdentityService.Domain.ServiceEntities.UserChat;
 
-namespace IdentityService.Domain.IService;
-public interface IUserChat
+namespace IdentityService.Domain.IService
 {
-    Task CreateDialogMessage(long userDialogId, long userId, long toUserId, string message);
-    Task CreateGroupsMessage(UserGroupsMessage userGroupsMessage);
-    Task CreateUserDialog(CreateUserDialogEntity e);
-    Task CreateUserGroups(CreateUserGroupsEntity e);
-    Task DeleteUserDialogMessage(long userId, long deleteMessageId);
-    Task DeleteUserDialogToUser(long userId, long userDialogId);
-    Task DeleteUserGroupsMessage(long userGroupsId, long toUserId, long deleteMessageId);
-    Task DeleteUserGroupsToUser(long userId, long userGroupsId);
-    Task<IEnumerable<dynamic>> GetDialogAndGroupsByUserId(long userId);
-    Task<IEnumerable<UserDialogToUserDTO>> GetDialogByUserId(long userId);
-    Task<(IEnumerable<UserDialogMessage> list, bool over)> GetDialogMessageByDialogId(long userId, long dialogId, int pageSize, long beginId = 0);
-    Task<IEnumerable<UserGroupsToUserDTO>> GetGroupsByUserId(long userId);
-    Task<(IEnumerable<UserGroupsMessageDTO> list, bool over)> GetUserGroupsMessageByUserGroupsId(long userId, long userGroupsId, int pageSize, long beginId = 0);
-    Task ReadUserDialogMessage(long userDialogId, long toUserId, IEnumerable<long> readMessageIds);
-    Task ReadUserGroupsMessage(long userDialogId, long toUserId, IEnumerable<long> readMessageIds);
-    Task UpdateDialogToUser(long toUserId, string toUserName, string toUserAvatar);
-    Task UpdateUserGroupsMessage(long fromUserId, string fromUserName, string fromUserAvatar);
-    Task UpdateUserGroupsToUser(long userGroupsId, string name, string icon);
-    Task SendStatus(long userId, string method, int statusCode);
-    Task SendData(long userId, string method, object data);
-    Task SendData(IEnumerable<long> userId, string method, object data);
+    public interface IUserChat
+    {
+        Task AddUnReadUserGroupsMessageAsync(long userGroupsId, long toUserId, IEnumerable<long> unReadMessageIds);
+        Task<long> CreateDialogMessageAsync(CreateUserDialogMessageEntity e);
+        Task<long> CreateGroupsMessageAsync(CreateUserGroupsMessageEntity e);
+        Task<long> CreateUserDialogAsync(CreateUserDialogEntity e);
+        Task<long> CreateUserGroupsAsync(CreateUserGroupsEntity e);
+        Task DeleteUserDialogMessageAsync(long userId, long deleteMessageId);
+        Task DeleteUserDialogToUserAsync(long userId, long userDialogId);
+        Task DeleteUserGroupsMessageAsync(long userGroupsId, long toUserId, long deleteMessageId);
+        Task DeleteUserGroupsToUserAsync(long userId, long userGroupsId);
+        Task<IEnumerable<dynamic>> GetDialogAndGroupsByUserIdAsync(long userId);
+        Task<IEnumerable<UserDialogToUserDTO>> GetDialogByUserIdAsync(long userId);
+        Task<(IEnumerable<UserDialogMessage> list, bool over)> GetDialogMessageByDialogIdAsync(long userId, long dialogId, int pageSize, long beginId = 0);
+        Task<IEnumerable<UserGroupsToUserDTO>> GetGroupsByUserIdAsync(long userId);
+        Task<(IEnumerable<UserGroupsMessageDTO> list, bool over)> GetUserGroupsMessageByUserGroupsIdAsync(long userId, long userGroupsId, int pageSize, long beginId = 0);
+        Task ReadUserDialogMessageAsync(long userDialogId, long fromUserId, long toUserId, IEnumerable<long> readMessageIds);
+        Task ReadUserGroupsMessageAsync(long userGroupsId, long toUserId, IEnumerable<long> readMessageIds);
+        Task SendDataByUserIdAsync(IEnumerable<long> userIds, string method, object data);
+        Task SendDataByUserIdAsync(long userId, string method, object data);
+        Task UpdateDialogToUserAsync(long toUserId, string toUserName, string toUserAvatar);
+        Task UpdateUserGroupsMessageAsync(long fromUserId, string fromUserName, string fromUserAvatar);
+        Task UpdateUserGroupsToUserAsync(long userGroupsId, string name, string icon);
+    }
 }

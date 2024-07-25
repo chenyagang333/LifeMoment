@@ -35,7 +35,7 @@ namespace IdentityService.Domain.Entities.UserChat
             }
             return this;
         }
-        public UserDialogMessage UpdatePostMessages(string msg)
+        public UserDialogMessage UpdatePostMessages(string? msg)
         {
             PostMessages = msg;
             return this;
