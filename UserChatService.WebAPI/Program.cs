@@ -2,6 +2,7 @@ using CommonInitializer;
 using CommonInitializer.ConfigOptions;
 using StackExchange.Redis;
 using UserChatService.Domain.Model;
+using UserChatService.Infrastructure.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,14 +10,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ƒ¨»œ≥ı ºªØ≈‰÷√
 builder.ConfigureDbConfiguration();
-builder.ConfigureExtraServices(new InitializerOptions
+var initializerOptions = new InitializerOptions
 {
     EventBusQueueName = "UserChatService.WebAPI",
     LogFilePath = "d:/temp/UserChatService.log",
     ProfileAssemblyMarkerTypes = [typeof(UserChatProfile)],
     ConStrKey = "UserChatDb",
     SignalRMapHubPattern = "/UserChatHub"
-});
+};
+builder.ConfigureExtraServices(initializerOptions);
 
 string redisConnStr = builder.Configuration.GetValue<string>("Redis:ConnStr")!;
 //builder.Services.AddSignalR();
@@ -40,9 +42,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.MapHub<UserChatHub>(initializerOptions.SignalRMapHubPattern);
 
-app.UseAuthorization();
+app.UseChenDefault();
 
 app.MapControllers();
 

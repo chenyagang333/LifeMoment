@@ -1,6 +1,7 @@
 ﻿using Chen.Commons;
 using Chen.Commons.ApiResult;
 using Chen.Commons.ApiResult.Generic;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using UserChatService.Domain.IService;
@@ -9,20 +10,21 @@ using UserChatService.Domain.Model.Request;
 namespace UserChatService.WebAPI.Controllers
 {
     [Route("api/[controller]/[action]")]
+    [Authorize]
     [ApiController]
     public class UserGroupsController : ControllerBase
     {
-        private readonly IUserChat userChat;
+        private readonly IUserGroupsService userGroupsService;
 
-        public UserGroupsController(IUserChat userChat)
+        public UserGroupsController(IUserGroupsService userGroupsService)
         {
-            this.userChat = userChat;
+            this.userGroupsService = userGroupsService;
         }
         // 创建群聊
         [HttpPost]
         public async Task<ActionResult<ApiResult>> CreateUserGroups(CreateUserGroupsEntity e)
         {
-            var id = await userChat.CreateUserGroupsAsync(e);
+            var id = await userGroupsService.CreateUserGroupsAsync(e);
             return ApiResult.Succeeded(id);
         }
 
@@ -30,7 +32,7 @@ namespace UserChatService.WebAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<ApiResult>> CreateGroupsMessage(CreateUserGroupsMessageEntity e)
         {
-            var id = await userChat.CreateGroupsMessageAsync(e);
+            var id = await userGroupsService.CreateGroupsMessageAsync(e);
             return ApiResult.Succeeded(id);
         }
 
@@ -38,7 +40,7 @@ namespace UserChatService.WebAPI.Controllers
         [HttpDelete]
         public async Task<ActionResult<ApiResult>> DeleteUserGroupsToUser(long userId, long userGroupsId)
         {
-            await userChat.DeleteUserGroupsToUserAsync(userId, userGroupsId);
+            await userGroupsService.DeleteUserGroupsToUserAsync(userId, userGroupsId);
             return ApiResult.Succeess;
         }
 
@@ -46,7 +48,7 @@ namespace UserChatService.WebAPI.Controllers
         [HttpDelete]
         public async Task<ActionResult<ApiResult>> DeleteUserGroupsMessage(long userGroupsId, long toUserId, long deleteMessageId)
         {
-            await userChat.DeleteUserGroupsMessageAsync(userGroupsId, toUserId, deleteMessageId);
+            await userGroupsService.DeleteUserGroupsMessageAsync(userGroupsId, toUserId, deleteMessageId);
             return ApiResult.Succeess;
         }
 
@@ -54,7 +56,7 @@ namespace UserChatService.WebAPI.Controllers
         [HttpPut]
         public async Task<ActionResult<ApiResult>> ReadUserGroupsMessage(ReadUserGroupsMessageRequest e)
         {
-            await userChat.ReadUserGroupsMessageAsync(e.userGroupsId, e.toUserId, e.readMessageIds);
+            await userGroupsService.ReadUserGroupsMessageAsync(e.userGroupsId, e.toUserId, e.readMessageIds);
             return ApiResult.Succeess;
         }
     }

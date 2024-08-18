@@ -4,7 +4,6 @@ using IdentityService.Domain.Entities;
 using IdentityService.Domain.IRespository;
 using IdentityService.Domain.IService;
 using IdentityService.Infrastructure;
-using IdentityService.Infrastructure.Hubs;
 using IdentityService.Infrastructure.Respository;
 using IdentityService.Infrastructure.Service;
 using IdentityService.WebAPI;
@@ -97,7 +96,6 @@ if (app.Environment.IsDevelopment())
 }
 app.UseChenDefault();
 
-app.MapHub<UserChatHub>(initializerOptions.SignalRMapHubPattern);
 
 app.MapControllers();
 app.Run();

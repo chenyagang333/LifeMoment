@@ -11,9 +11,9 @@ namespace UserChatService.Infrastructure.Hubs
 {
     public class UserChatHub : Hub
     {
-        private readonly IUserChat userChat;
+        private readonly IUserChatService userChat;
 
-        public UserChatHub(IUserChat userChat)
+        public UserChatHub(IUserChatService userChat)
         {
             this.userChat = userChat;
         }

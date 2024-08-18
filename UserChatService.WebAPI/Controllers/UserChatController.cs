@@ -1,6 +1,7 @@
 ﻿using Chen.Commons;
 using Chen.Commons.ApiResult;
 using Chen.Commons.ApiResult.Generic;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using UserChatService.Domain.IService;
@@ -9,12 +10,14 @@ using UserChatService.Domain.Model.Request;
 namespace UserChatService.WebAPI.Controllers
 {
     [Route("api/[controller]/[action]")]
+    [Authorize]
+    [AllowAnonymous]
     [ApiController]
     public class UserChatController : ControllerBase
     {
-        private readonly IUserChat userChat;
+        private readonly IUserChatService userChat;
 
-        public UserChatController(IUserChat userChat)
+        public UserChatController(IUserChatService userChat)
         {
             this.userChat = userChat;
         }

@@ -1,6 +1,5 @@
 ﻿using Chen.Infrastructure.EFCore;
 using IdentityService.Domain.Entities;
-using IdentityService.Domain.Entities.UserChat;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
