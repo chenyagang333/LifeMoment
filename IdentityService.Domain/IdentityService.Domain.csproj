@@ -16,4 +16,8 @@
     <ProjectReference Include="..\Chen.JWT\Chen.JWT.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DTO\ACustomProfile\" />
+  </ItemGroup>
+
 </Project>

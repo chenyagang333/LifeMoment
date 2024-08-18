@@ -1,6 +1,5 @@
 using CommonInitializer;
 using CommonInitializer.ConfigOptions;
-using IdentityService.Domain.DTO.ACustomProfile;
 using IdentityService.Domain.Entities;
 using IdentityService.Domain.IRespository;
 using IdentityService.Domain.IService;
@@ -24,19 +23,11 @@ var initializerOptions = new InitializerOptions
 {
     EventBusQueueName = "IdentityService.WebAPI",
     LogFilePath = "d:/temp/IdentityService.log",
-    ProfileAssemblyMarkerTypes = [typeof(CustomProfile), typeof(UserChatProfile)],
+    ProfileAssemblyMarkerTypes = [typeof(CustomProfile)],
     ConStrKey = "IdentityDb",
-    SignalRMapHubPattern = "/UserChatHub"
-
 };
 builder.ConfigureExtraServices(initializerOptions);
-string redisConnStr = builder.Configuration.GetValue<string>("Redis:ConnStr")!;
-//builder.Services.AddSignalR();
-// AddSignalR 的分布式部署，通过微软提供的 AddStackExchangeRedis 实现，多个服务之间的通信
-builder.Services.AddSignalR().AddStackExchangeRedis(redisConnStr, options =>
-{
-    options.Configuration.ChannelPrefix = RedisChannel.Literal("SignalR_");
-});
+
 
 
 builder.Services.AddControllers();

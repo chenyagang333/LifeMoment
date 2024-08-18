@@ -1,15 +1,13 @@
 ﻿using AutoMapper;
-using IdentityService.Domain.DTO.UserChat;
-using IdentityService.Domain.Entities.UserChat;
-using IdentityService.Domain.Entities;
-using IdentityService.Domain.Notifications;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UserChatService.Domain.Entities.UserChat;
+using UserChatService.Domain.Model.Response;
 
-namespace IdentityService.Domain.DTO.ACustomProfile
+namespace UserChatService.Domain.Model
 {
 
     public class UserChatProfile : Profile

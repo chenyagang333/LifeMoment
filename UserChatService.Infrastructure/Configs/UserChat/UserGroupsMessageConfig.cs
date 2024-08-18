@@ -1,13 +1,13 @@
-﻿using IdentityService.Domain.Entities.UserChat;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UserChatService.Domain.Entities.UserChat;
 
-namespace IdentityService.Infrastructure.Configs.UserChat
+namespace UserChatService.Infrastructure.Configs.UserChat
 {
     public class UserGroupsMessageConfig : IEntityTypeConfiguration<UserGroupsMessage>
     {

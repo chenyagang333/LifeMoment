@@ -8,7 +8,7 @@ using UserChatService.Domain.Model.Request;
 
 namespace UserChatService.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class UserChatController : ControllerBase
     {
