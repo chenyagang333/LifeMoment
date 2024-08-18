@@ -7,11 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Chen.Commons\Chen.Commons.csproj" />
+    <Compile Remove="Options\**" />
+    <EmbeddedResource Remove="Options\**" />
+    <None Remove="Options\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Options\" />
+    <ProjectReference Include="..\Chen.Commons\Chen.Commons.csproj" />
+    <ProjectReference Include="..\Chen.DomainCommons\Chen.DomainCommons.csproj" />
   </ItemGroup>
 
 </Project>

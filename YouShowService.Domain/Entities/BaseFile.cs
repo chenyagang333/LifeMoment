@@ -14,5 +14,22 @@ namespace YouShowService.Domain.Entities
         public FileType Type { get; set; }
         public string FirstURL { get; set; }
         public string? SecondURL { get; set; }
+
+        public BaseFile SpliceFirstURL(string baseUrl)
+        {
+            if (!string.IsNullOrEmpty(FirstURL))
+            {
+                FirstURL = baseUrl + FirstURL;
+            }
+            return this;
+        }
+        public BaseFile SpliceSecondURL(string baseUrl)
+        {
+            if (!string.IsNullOrEmpty(SecondURL))
+            {
+                SecondURL = baseUrl + SecondURL;
+            }
+            return this;
+        }
     }
 }

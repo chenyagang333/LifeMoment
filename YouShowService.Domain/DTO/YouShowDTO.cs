@@ -9,13 +9,8 @@ using YouShowService.Domain.IRespository;
 
 namespace YouShowService.Domain.DTO
 {
-    public record YouShowDTO : BaseYouShowCommentReplyDTO
+    public record YouShowDTO : YouShow
     {
-        public string? LikeUsers { get; private set; }
-        public int ViewCount { get; private set; }
-        public int StarCount { get; private set; }
-        public int ShareCount { get; private set; }
-        public int CommentCount { get; private set; }
         // 下方是新增 前端需要展示的属性
         public bool LikeActive { get; set; }
         public bool StarActive { get; set; }
@@ -41,19 +36,17 @@ namespace YouShowService.Domain.DTO
             }
             return this;
         }
-
-        public YouShowDTO UpdateFiles(IEnumerable<YouShowFile> youShowFiles)
+        public YouShowDTO UpdateFiles(IEnumerable<YouShowFile> youShowFiles,string baseUrl)
         {
-            List<YouShowFile> data = new();
-            foreach (var youShowFile in youShowFiles)
+            Files = youShowFiles.Where(x => x.YouShowId == Id).OrderBy(x => x.sort);
+            foreach (var file in Files)
             {
-                if (youShowFile.YouShowId == this.Id)
-                {
-                    data.Add(youShowFile);
-                }
+                file.SpliceFirstURL(baseUrl).SpliceSecondURL(baseUrl); // 拼接文件地址
             }
-            Files = data.OrderBy(x => x.sort);
             return this;
         }
+
+
+
     }
 }

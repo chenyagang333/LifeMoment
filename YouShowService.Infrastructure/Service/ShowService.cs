@@ -3,9 +3,11 @@ using Chen.Commons;
 using Chen.Commons.ApiResult.Generic;
 using Chen.Commons.FunResult;
 using Chen.DomainCommons;
+using Chen.DomainCommons.ConfigOptions;
 using Chen.JWT;
 using FileService.SDK.NETCore;
 using Humanizer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -40,6 +42,7 @@ namespace YouShowService.Infrastructure.Service
         private readonly IOptionsSnapshot<FileServiceOptions> optionsSnapshot;
         private readonly IOptionsSnapshot<SearchServiceOptions> searchServiceOptions;
         private readonly ILogger<ShowService> logger;
+        private readonly IOptionsSnapshot<FileServiceCommonOptions> fileServerOptions;
 
         public ShowService(IYouShowRespository youShowRespository, IMapper mapper,
             YouShowDbContext ctx, ICommentService commentService, IReplyService replyService,
@@ -47,7 +50,9 @@ namespace YouShowService.Infrastructure.Service
             IOptionsSnapshot<JWTOptions> jWTOptions,
             IOptionsSnapshot<FileServiceOptions> optionsSnapshot,
             IOptionsSnapshot<SearchServiceOptions> searchServiceOptions,
-            ILogger<ShowService> logger)
+            ILogger<ShowService> logger,
+            IOptionsSnapshot<FileServiceCommonOptions> fileServerOptions
+            )
         {
             this.youShowRespository = youShowRespository;
             this.mapper = mapper;
@@ -60,6 +65,7 @@ namespace YouShowService.Infrastructure.Service
             this.optionsSnapshot = optionsSnapshot;
             this.searchServiceOptions = searchServiceOptions;
             this.logger = logger;
+            this.fileServerOptions = fileServerOptions;
         }
 
         public async Task<(List<YouShowDTO> dto, long count)> PagingQueryAsync(long userId, int pageSize, int pageIndex)
@@ -93,6 +99,14 @@ namespace YouShowService.Infrastructure.Service
         }
         
         // 根据UserId查询
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="_userId">登录用户Id</param>
+        /// <param name="userId">作品关联用户Id</param>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
         public async Task<(List<YouShowDTO> dto, long count)> PagingQueryByUserIdAsync(long _userId, long userId, int pageIndex, int pageSize)
         {
             var data = await ctx.YouShows.Where(x => x.UserId == userId).OrderByDescending(od => od.Id).Paging(pageSize, pageIndex).ToListAsync();
@@ -141,10 +155,20 @@ namespace YouShowService.Infrastructure.Service
             return ([], 0);
         }
 
+        /// <summary>
+        /// 更新文章表数据库原始数据为前端需要展示的数据
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="dto"></param>
+        /// <returns></returns>
         public async Task<List<YouShowDTO>> AddRelevant(long userId, List<YouShowDTO> dto)
         {
+            // 拿到文章关联的所有图片或视频
             var files = await ctx.YouShowFiles.Where(c => dto.Select(x => x.Id).Contains(c.YouShowId)).ToListAsync();
-            dto.ForEach(d => d.UpdateFiles(files));
+            // 拿到文件存放的BaseURL
+            var fileBaseURL = fileServerOptions.Value.FileBaseUrl;
+            // 循环赋值
+            dto.ForEach(d => d.UpdateFiles(files, fileBaseURL).SpliceUserAvatarURL(fileBaseURL));
             if (userId > 0)
             {
                 var showIds = dto.Select(x => x.Id);

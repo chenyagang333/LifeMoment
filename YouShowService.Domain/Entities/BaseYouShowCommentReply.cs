@@ -7,6 +7,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using YouShowService.Domain.DTO;
 using YouShowService.Domain.Notifications;
 
 namespace YouShowService.Domain.Entities;
@@ -48,6 +49,15 @@ public record BaseYouShowCommentReply : AggregateRootEntity
     public BaseYouShowCommentReply UpdateUserId(long userId)
     {
         UserId = userId;
+        return this;
+    }
+
+    public BaseYouShowCommentReply SpliceUserAvatarURL(string baseUrl)
+    {
+        if (!string.IsNullOrEmpty(UserAvatarURL))
+        {
+            UserAvatarURL = baseUrl + UserAvatarURL;
+        }
         return this;
     }
 

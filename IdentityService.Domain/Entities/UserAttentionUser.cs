@@ -17,6 +17,6 @@ namespace IdentityService.Domain.Entities
         /// <summary>
         /// 关注用户备注
         /// </summary>
-        public string ToUserRemark { get; set; }
+        //public string? ToUserRemark { get; set; }
     }
 }

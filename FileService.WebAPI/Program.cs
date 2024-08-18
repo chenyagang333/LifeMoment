@@ -1,4 +1,5 @@
 using CommonInitializer;
+using CommonInitializer.ConfigOptions;
 using FileService.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -15,7 +15,7 @@ using System.Security.Claims;
 
 namespace IdentityService.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [Authorize]
     [ApiController]
     public class UserChatController : ControllerBase
@@ -84,7 +84,7 @@ namespace IdentityService.WebAPI.Controllers
         }
         // 修改私聊消息读取状态：读取
         [HttpPut]
-        public async Task<ActionResult<ApiResult>> ReadUserGroupsMessage(ReadUserDialogMessageRequest e)
+        public async Task<ActionResult<ApiResult>> ReadUserDialogMessage(ReadUserDialogMessageRequest e)
         {
             await userChat.ReadUserDialogMessageAsync(e.userDialogId,e.fromUserId, e.toUserId, e.readMessageIds);
             return ApiResult.Succeess;

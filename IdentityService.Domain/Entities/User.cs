@@ -294,6 +294,9 @@ namespace IdentityService.Domain.Entities
             return this;
         }
 
+
+        
+
         #region 领域事件模块
 
         [NotMapped]

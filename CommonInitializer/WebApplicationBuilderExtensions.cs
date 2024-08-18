@@ -28,6 +28,8 @@ using Microsoft.AspNetCore.Http;
 using System.Data;
 using System.Data.Common;
 using Microsoft.IdentityModel.Tokens;
+using CommonInitializer.ConfigOptions;
+using Chen.DomainCommons.ConfigOptions;
 
 namespace CommonInitializer
 {
@@ -35,8 +37,9 @@ namespace CommonInitializer
     {
         public static void ConfigureDbConfiguration(this WebApplicationBuilder builder)
         {
-            // Tips:在linux开发环境docker容器中使用MySqlConnection连接mysql容器提示找不到主机
+            // Tips:在linux生产环境docker容器中使用MySqlConnection连接mysql容器提示找不到主机
             // 原因是在项目启动时，mysql没有启动，所以要先启动mysql后再启动项目
+            // 解决方法：在Dockerfile文件中，启动命令，启动dll文件时延迟 5s
             string? connStr = builder.Configuration.GetConnectionString($"config_conn");
             builder.Configuration.AddDbConfiguration(
                 () => new MySqlConnection(connStr), reloadOnChange: true, reloadInterval: TimeSpan.FromSeconds(5));
@@ -67,9 +70,11 @@ namespace CommonInitializer
             builder.Services.AddAuthorization();
             builder.Services.AddAuthentication();
 
+            // 配置 JWT
             JWTOptions jwtOpt = configuration.GetSection("JWT").Get<JWTOptions>()!;
             jwtOpt.SignalRMapHubPattern = initOptions.SignalRMapHubPattern; // 设置SignalR的路径前缀
             builder.Services.AddJWTAuthentication(jwtOpt);
+            services.Configure<JWTOptions>(configuration.GetSection("JWT"));
 
             // 启动 Swagger 中的【Authorize】按钮。这样就不用在每个项目的 AddSwaggerGen 中单独配置了。
             builder.Services.Configure<SwaggerGenOptions>(c =>
@@ -86,7 +91,7 @@ namespace CommonInitializer
                 //cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
                 cfg.RegisterServicesFromAssemblies(assemblies.ToArray());
             });
-            //// 添加 Filter
+            //// 添加 Filter // 添加工作单元，自动执行保存实体
             services.Configure<MvcOptions>(options =>
             {
                 options.Filters.Add<UnitOfWorkFilter>(); // 添加工作单元，自动执行保存实体
@@ -116,12 +121,13 @@ namespace CommonInitializer
                 .CreateLogger();
                 builder.AddSerilog();
             });
+
             // 注册模型验证服务
             services.AddFluentValidationAutoValidation();
             services.AddValidatorsFromAssemblies(assemblies);
-            //
 
-            services.Configure<JWTOptions>(configuration.GetSection("JWT"));
+
+            // 配置RabbitMQ
             services.Configure<IntegrationEventRabbitMQOptions>(configuration.GetSection("RabbitMQ"));
             services.AddEventBus(initOptions.EventBusQueueName, assemblies);
 
@@ -134,8 +140,9 @@ namespace CommonInitializer
             //IConnectionMultiplexer redisConnMultiplexer = ConnectionMultiplexer.Connect(redisConnStr);
             //services.AddSingleton(typeof(IConnectionMultiplexer),redisConnMultiplexer);
 
+            // 分布式缓存
             builder.Services.AddStackExchangeRedisCache(opt =>
-            { // 分布式缓存
+            { 
                 opt.Configuration = redisConnStr;
                 //opt.InstanceName = "IdentityService_"; // 为 Key 加前缀，防止混乱
             });
@@ -145,11 +152,14 @@ namespace CommonInitializer
                 options.ForwardedHeaders = ForwardedHeaders.All;
             });
 
+            // 添加 AddAutoMapper
             if (initOptions.ProfileAssemblyMarkerTypes != null)
             {
-                // 添加 AddAutoMapper
                 builder.Services.AddAutoMapper(initOptions.ProfileAssemblyMarkerTypes);
             }
+
+            // 配置文件服务的公共基路径
+            services.Configure<FileServiceCommonOptions>(builder.Configuration.GetSection("FileServiceCommonOptions"));
         }
     }
 }

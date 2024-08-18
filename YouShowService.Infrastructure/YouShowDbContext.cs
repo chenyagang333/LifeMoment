@@ -5,7 +5,7 @@ using YouShowService.Domain.Entities;
 
 namespace YouShowService.Infrastructure
 {
-    public class YouShowDbContext:BaseDbContext
+    public class YouShowDbContext : BaseDbContext
     {
         public DbSet<YouShow> YouShows { get; set; }
         public DbSet<Comment> Comments { get; set; }
@@ -16,9 +16,9 @@ namespace YouShowService.Infrastructure
         public DbSet<YouShowStarUser> YouShowStarUsers { get; set; }
         public DbSet<YouShowFile> YouShowFiles { get; set; }
 
-        public YouShowDbContext(DbContextOptions options,IMediator mediator):base(options, mediator)
+        public YouShowDbContext(DbContextOptions options, IMediator mediator) : base(options, mediator)
         {
-            
+
         }
 
         protected override void OnModelCreating(ModelBuilder builder)

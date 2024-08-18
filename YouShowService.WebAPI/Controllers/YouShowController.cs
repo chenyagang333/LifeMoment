@@ -19,7 +19,6 @@ using YouShowService.Infrastructure.Respository;
 namespace YouShowService.WebAPI.Controllers
 {
     [Authorize]
-    [UnitOfWork(typeof(YouShowDbContext))]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class YouShowController : ControllerBase
@@ -70,7 +69,7 @@ namespace YouShowService.WebAPI.Controllers
             {
                 var _userId = HttpHelper.TryGetUserId(HttpContext);
                 var (data, count) = await youShowService
-                    .PagingQueryByUserIdAsync(_userId,userId, pageIndex, pageSize);
+                    .PagingQueryByUserIdAsync(_userId, userId, pageIndex, pageSize);
                 return ApiListResult.Succeeded(data, count);
             }
             return ApiResult.Error;
@@ -84,14 +83,32 @@ namespace YouShowService.WebAPI.Controllers
             {
                 var _userId = HttpHelper.TryGetUserId(HttpContext);
                 var (data, count) = await youShowService
-                    .PagingQueryByLikeOrStarAsync(_userId,userId, like_or_star, pageIndex, pageSize);
+                    .PagingQueryByLikeOrStarAsync(_userId, userId, like_or_star, pageIndex, pageSize);
                 return ApiListResult.Succeeded(data, count);
             }
             return ApiResult.Error;
         }
+        [HttpGet]
+        // 获取IP所在的省份
+        public async Task<ActionResult<ApiResult>> GetAddress()
+        {
+            try
+            {
+                var res = await HttpHelper.GetAddressByHttpContextAccessor(httpContextAccessor);
+                return ApiResult.Succeeded(res);
+            }
+            catch (Exception)
+            {
+                return ApiResult.Error;
+            }
+            //var addressIp = httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString();
+
+            //string? address = await HttpHelper.GetAddressByRemoteIpAddress("114.247.50.2");
+            //return ApiResult.Succeeded(address);
+        }
 
 
-
+        [UnitOfWork(typeof(YouShowDbContext))]
         [HttpPost]
         // 创建youshow
         public async Task<ActionResult<ApiResult>> CreateYouShowAsync(CreateYouShow createYouShow)
@@ -121,6 +138,7 @@ namespace YouShowService.WebAPI.Controllers
             return ApiResult.Failed(res.Description);
         }
 
+        [UnitOfWork(typeof(YouShowDbContext))]
         [HttpDelete]
         // 根据Id删除youshow
         public async Task<ActionResult<ApiResult>> DeleteByIdAsync(long id)
@@ -129,24 +147,7 @@ namespace YouShowService.WebAPI.Controllers
             await youShowService.DeleteByIdAsync(userId, id);
             return ApiResult.Succeess;
         }
-        [HttpGet]
-        // 获取IP所在的省份
-        public async Task<ActionResult<ApiResult>> GetAddress()
-        {
-            try
-            {
-                var res = await HttpHelper.GetAddressByHttpContextAccessor(httpContextAccessor);
-                return ApiResult.Succeeded(res);
-            }
-            catch (Exception)
-            {
-                return ApiResult.Error;
-            }
-            //var addressIp = httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString();
-
-            //string? address = await HttpHelper.GetAddressByRemoteIpAddress("114.247.50.2");
-            //return ApiResult.Succeeded(address);
-        }
+        [UnitOfWork(typeof(YouShowDbContext))]
         [HttpGet]
         // 添加收藏
         public async Task<ActionResult<ApiResult>> StarShow(long youshowId)
@@ -158,6 +159,7 @@ namespace YouShowService.WebAPI.Controllers
             youshow?.AddStarCount(1);
             return ApiResult.Succeess;
         }
+        [UnitOfWork(typeof(YouShowDbContext))]
         [HttpGet]
         // 取消收藏
         public async Task<ActionResult<ApiResult>> CancelStarShow(long youshowId)
@@ -174,6 +176,7 @@ namespace YouShowService.WebAPI.Controllers
             }
             return ApiResult.Failed("#已经取消点赞了");
         }
+        [UnitOfWork(typeof(YouShowDbContext))]
         [HttpGet]
         // 添加点赞
         public async Task<ActionResult<ApiResult>> LikeShow(long youshowId)
@@ -185,6 +188,7 @@ namespace YouShowService.WebAPI.Controllers
             youshow?.AddLikeCount(1);
             return ApiResult.Succeess;
         }
+        [UnitOfWork(typeof(YouShowDbContext))]
         [HttpGet]
         // 取消点赞
         public async Task<ActionResult<ApiResult>> CancelLikeShow(long youshowId)

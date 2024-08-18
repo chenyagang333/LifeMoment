@@ -7,13 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Chen.Commons\Chen.Commons.csproj" />
-    <ProjectReference Include="..\SearchService.Domain\SearchService.Domain.csproj" />
-	  <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.13.15" />    
+    <Compile Remove="Helper\**" />
+    <EmbeddedResource Remove="Helper\**" />
+    <None Remove="Helper\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Helper\" />
+    <ProjectReference Include="..\Chen.Commons\Chen.Commons.csproj" />
+    <ProjectReference Include="..\SearchService.Domain\SearchService.Domain.csproj" />
+	  <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.13.15" />    
   </ItemGroup>
 
 </Project>

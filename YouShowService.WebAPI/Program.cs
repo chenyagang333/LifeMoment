@@ -1,5 +1,6 @@
 using Chen.JWT;
 using CommonInitializer;
+using CommonInitializer.ConfigOptions;
 using Microsoft.EntityFrameworkCore;
 using YouShowService.Domain.Options;
 using YouShowService.WebAPI;

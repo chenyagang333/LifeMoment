@@ -15,7 +15,6 @@ namespace YouShowService.WebAPI.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [UnitOfWork(typeof(YouShowDbContext))]
     public class CommentController : ControllerBase
     {
         private readonly ICommentRespository commentRespository;
@@ -37,6 +36,7 @@ namespace YouShowService.WebAPI.Controllers
             var (data, count) = await commentService.PagingQueryByShowIdAsync(userId, showId, pageSize, pageIndex);
             return ApiListResult.Succeeded(data, count);
         }
+        [UnitOfWork(typeof(YouShowDbContext))]
         [HttpPost]
         public async Task<ActionResult<ApiResult>> CreateComment(CreateComment createComment)
         {
@@ -47,12 +47,14 @@ namespace YouShowService.WebAPI.Controllers
             await ctx.SaveChangesAsync();
             return ApiResult.Succeeded(comment.Id);
         }
+        [UnitOfWork(typeof(YouShowDbContext))]
         [HttpDelete]
         public async Task<ActionResult<ApiResult>> DeleteByIdAsync(long id)
         {
             await commentService.DeleteByIdAsync(id);
             return ApiResult.Succeess;
         }
+        [UnitOfWork(typeof(YouShowDbContext))]
         [HttpGet]
         // 添加点赞
         public async Task<ActionResult<ApiResult>> UpdateLikeComment(long id, int updateType)

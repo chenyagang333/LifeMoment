@@ -1,4 +1,5 @@
 using CommonInitializer;
+using CommonInitializer.ConfigOptions;
 using IdentityService.Domain.DTO.ACustomProfile;
 using IdentityService.Domain.Entities;
 using IdentityService.Domain.IRespository;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IdentityService.Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,7 @@ namespace IdentityService.Domain.DTO
         public long Id { get; set; }
         public string UserName { get; set; }
         public string UserAvatar { get; set; }
+        public string userAvatarRelativeUrl { get; set; }
         public int UserAccount { get; set; }
         public int AttentionCount { get; set; }
         public int FansCount { get; set; }
@@ -20,5 +22,15 @@ namespace IdentityService.Domain.DTO
         public int StarCount { get; set; }
         public int ContentCount { get; set; }
         public string Description { get; set; }
+
+        public UserDTO UpdateUserAvatar(string baseUrl)
+        {
+            if (!string.IsNullOrEmpty(UserAvatar))
+            {
+                userAvatarRelativeUrl = UserAvatar;
+                UserAvatar = baseUrl + UserAvatar;
+            }
+            return this;
+        }
     };
 }

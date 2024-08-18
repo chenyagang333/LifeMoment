@@ -28,5 +28,13 @@ namespace SearchService.Domain.Entitis
             UserAccountString = UserAccount.ToString();
             return this;
         }
+        public LifeBusUser SpliceUserAvatarURL(string baseUrl)
+        {
+            if (!string.IsNullOrEmpty(UserAvatar))
+            {
+                UserAvatar = baseUrl + UserAvatar;
+            }
+            return this;
+        }
     }
 }

@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
+using Chen.DomainCommons.ConfigOptions;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
@@ -17,27 +20,47 @@ namespace YouShowService.Infrastructure.Service
     public class ReplyService : IReplyService
     {
         private readonly IReplyRespository replyRespository;
+        private readonly IOptionsSnapshot<FileServiceCommonOptions> fileServerOptions;
         private readonly IMapper mapper;
         private readonly YouShowDbContext ctx;
 
-        public ReplyService(IMapper mapper, YouShowDbContext ctx, IReplyRespository replyRespository)
+        public ReplyService(IMapper mapper, 
+            YouShowDbContext ctx,
+            IReplyRespository replyRespository,
+            IOptionsSnapshot<FileServiceCommonOptions> fileServerOptions
+            )
         {
             this.mapper = mapper;
             this.ctx = ctx;
             this.replyRespository = replyRespository;
+            this.fileServerOptions = fileServerOptions;
         }
         public async Task<(List<ReplyDTO> dto, long count)> PagingQueryByShowIdAsync(long userId, long commentId, int pageSize, int pageIndex)
         {
             var (data, count) = await replyRespository.PagingQueryByCommentIdAsync(commentId, pageSize, pageIndex);
             var dto = mapper.Map<List<Reply>, List<ReplyDTO>>(data);
+            await AddRelevant(userId, dto);
+            return (dto, count);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userId">评论关联用户Id</param>
+        /// <param name="dto"></param>
+        /// <returns></returns>
+        private async Task AddRelevant(long userId, List<ReplyDTO> dto)
+        {
+            var fileBaseURL = fileServerOptions.Value.FileBaseUrl;
+            dto.ForEach(x => x.SpliceUserAvatarURL(fileBaseURL));
             if (userId > 0)
             {
                 var replyIds = dto.Select(x => x.Id);
                 var likeData = await replyRespository.QueryLikeActiceIds(userId, replyIds);
                 dto.ForEach(x => x.CheckLike(likeData));
             }
-            return (dto, count);
         }
+
         public async Task DeleteByIdAsync(long id)
         {
             var reply = await ctx.Replys.FirstOrDefaultAsync(x => x.Id == id);

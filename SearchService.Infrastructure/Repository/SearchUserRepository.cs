@@ -1,5 +1,8 @@
-﻿using Elastic.Clients.Elasticsearch;
+﻿using Chen.DomainCommons.ConfigOptions;
+using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.QueryDsl;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Options;
 using SearchService.Domain.Entitis;
 using SearchService.Domain.IRepository;
 using System;
@@ -13,9 +16,14 @@ namespace SearchService.Infrastructure.Repository
     public class SearchUserRepository : ISearchUserRepository
     {
         private readonly ElasticsearchClient elasticsearchClient;
-        public SearchUserRepository(ElasticsearchClient elasticsearchClient)
+        private readonly IOptionsSnapshot<FileServiceCommonOptions> fileServerOptions;
+
+        public SearchUserRepository(ElasticsearchClient elasticsearchClient,
+            IOptionsSnapshot<FileServiceCommonOptions> fileServerOptions
+            )
         {
             this.elasticsearchClient = elasticsearchClient;
+            this.fileServerOptions = fileServerOptions;
         }
         public Task DeleteAsync(long id)
         {
@@ -68,9 +76,11 @@ namespace SearchService.Infrastructure.Repository
             {
                 throw new ApplicationException(res.DebugInformation);
             }
-            var docList = res.Documents?.ToList();
-
-  
+            var docList = res.Documents?.ToList() ?? [];
+            if (docList.Count > 0)
+            {
+                docList.ForEach(x => x.SpliceUserAvatarURL(fileServerOptions.Value.FileBaseUrl));
+            }
             return (docList, res.Total);
         }
 

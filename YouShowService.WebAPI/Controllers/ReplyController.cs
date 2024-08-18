@@ -15,7 +15,6 @@ namespace YouShowService.WebAPI.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [UnitOfWork(typeof(YouShowDbContext))]
     public class ReplyController : ControllerBase
     {
         private readonly IReplyRespository replyRespository;
@@ -37,16 +36,18 @@ namespace YouShowService.WebAPI.Controllers
             var (data, count) = await replyService.PagingQueryByShowIdAsync(userId, commentId, pageSize, pageIndex);
             return ApiListResult.Succeeded(data, count);
         }
+        [UnitOfWork(typeof(YouShowDbContext))]
         [HttpPost]
         public async Task<ActionResult<ApiResult>> CreateReply(CreateReply createReply)
         {
-            Reply reply = mapper.Map<CreateReply,Reply>(createReply);
+            Reply reply = mapper.Map<CreateReply, Reply>(createReply);
             var userId = HttpHelper.GetUserId(HttpContext);
             reply.UpdateUserId(userId);
             await replyService.CreateReply(reply, createReply.ShowId);
             await ctx.SaveChangesAsync();
             return ApiResult.Succeeded(reply.Id);
         }
+        [UnitOfWork(typeof(YouShowDbContext))]
         [HttpDelete]
         public async Task<ActionResult<ApiResult>> DeleteByIdAsync(long id)
         {
@@ -54,6 +55,7 @@ namespace YouShowService.WebAPI.Controllers
             return ApiResult.Succeess;
         }
 
+        [UnitOfWork(typeof(YouShowDbContext))]
         [HttpGet]
         // 添加点赞
         public async Task<ActionResult<ApiResult>> UpdateLikeReply(long id, int updateType)
