@@ -8,9 +8,12 @@ using YouShowService.Domain.Notifications;
 
 namespace YouShowService.Domain.Entities
 {
-    public record YouShowLikeUser(long YouShowId, long UserId) : DomainEvents
+    public record YouShowLikeUser : YouShowUserBase
     {
-        public long Id { get; set; }
+        public YouShowLikeUser(long YouShowId, long UserId) :base(YouShowId, UserId)
+        {
+            
+        }
         public YouShowLikeUser AddUserLikeCount(int addCount)
         {
             AddDomainEventIfAbsent(new UserDataUpdateEvent

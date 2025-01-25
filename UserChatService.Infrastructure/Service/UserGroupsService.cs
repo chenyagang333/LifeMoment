@@ -31,7 +31,7 @@ public class UserGroupsService : IUserGroupsService
     {
         var names = e.CreateUserGroupsToUsers.Select(x => x.userName);
         var name = string.Join("、", names);
-        var userGroups = new UserGroups().UpdateName(name).UpdateAdminId(e.admainId).UpdateIcon(e.icon);
+        var userGroups = new UserGroups().UpdateName(name).UpdateAdminId(e.adminId).UpdateIcon(e.icon);
         try
         {
             using var transaction = context.Database.BeginTransaction();
@@ -52,7 +52,7 @@ public class UserGroupsService : IUserGroupsService
         {
             return 0;
         }
-        var receiveUserIds = e.CreateUserGroupsToUsers.Select(x => x.userId).Where(x => x != e.admainId);
+        var receiveUserIds = e.CreateUserGroupsToUsers.Select(x => x.userId).Where(x => x != e.adminId);
         await userHubService.SendDataByUserIdAsync(receiveUserIds, "CreateUserGroups", userGroups);
         // 新建群聊提示信息
         await CreateGroupsMessageAsync(new CreateUserGroupsMessageEntity

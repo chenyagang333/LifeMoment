@@ -47,8 +47,8 @@ public class UserDialogService : IUserDialogService
                 await context.UserDialogs.AddAsync(userDialog);
                 await context.SaveChangesAsync(); // 保存后拿到Id
                                                   // 添加私聊会话记录用户关联表
-                var userDialogToUser1 = new UserDialogToUser(e.userId, e.toUserId, userDialog.Id, e.toUserName, e.toUserAvatar);
-                var userDialogToUser2 = new UserDialogToUser(e.toUserId, e.userId, userDialog.Id, e.userName, e.userAvatar);
+                var userDialogToUser1 = new UserDialogToUser(e.userId, e.toUserId, userDialog.Id, e.toUserName, e.toUserAvatar, DateTime.Now);
+                var userDialogToUser2 = new UserDialogToUser(e.toUserId, e.userId, userDialog.Id, e.userName, e.userAvatar, DateTime.Now);
                 List<UserDialogToUser> userDialogToUsers = [userDialogToUser1, userDialogToUser2];
                 await context.BulkInsertAsync(userDialogToUsers);
                 await context.SaveChangesAsync();
@@ -80,7 +80,7 @@ public class UserDialogService : IUserDialogService
             dialogId = userDialogToUser_1.UserDialogId;
         }
         // 对方的对话框显示发起聊天用户的信息
-        var toUserDialog = new UserDialogToUser(e.toUserId, dialogId, e.userId, e.userName, e.userAvatar);
+        var toUserDialog = new UserDialogToUser(e.toUserId, dialogId, e.userId, e.userName, e.userAvatar,DateTime.Now);
         await userHubService.SendDataByUserIdAsync(e.toUserId, "CreateUserDialog", toUserDialog);
         // 返回对话框的 Id
         return dialogId;

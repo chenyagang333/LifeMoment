@@ -8,7 +8,7 @@ namespace UserChatService.Domain.Model.Request
 {
     public class CreateUserGroupsEntity
     {
-        public long admainId { get; set; }
+        public long adminId { get; set; }
         public string icon { get; set; }
         public IEnumerable<CreateUserGroupsToUser> CreateUserGroupsToUsers { get; set; }
     }

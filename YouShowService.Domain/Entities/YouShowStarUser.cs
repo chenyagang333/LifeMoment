@@ -3,9 +3,12 @@ using YouShowService.Domain.Notifications;
 
 namespace YouShowService.Domain.Entities
 {
-    public record YouShowStarUser(long YouShowId, long UserId) : DomainEvents
+    public record YouShowStarUser : YouShowUserBase
     {
-        public long Id { get; set; }
+        public YouShowStarUser(long YouShowId, long UserId) : base(YouShowId, UserId)
+        {
+
+        }
         public YouShowStarUser AddUserStarCount(int addCount)
         {
             AddDomainEventIfAbsent(new UserDataUpdateEvent

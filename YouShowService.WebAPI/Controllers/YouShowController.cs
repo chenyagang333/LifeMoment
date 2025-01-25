@@ -169,7 +169,8 @@ namespace YouShowService.WebAPI.Controllers
                 .FirstOrDefaultAsync(x => x.YouShowId == youshowId && x.UserId == userId);
             if (entity != null)
             {
-                ctx.YouShowStarUsers.Remove(entity.AddUserStarCount(-1));
+                entity.AddUserStarCount(-1);
+                //ctx.YouShowStarUsers.Remove();
                 var youshow = await youShowRespository.QueryByIdAsync(youshowId);
                 youshow?.AddStarCount(-1);
                 return ApiResult.Succeess;

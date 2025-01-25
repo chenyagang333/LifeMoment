@@ -72,17 +72,19 @@ namespace YouShowService.Domain.Entities
         public YouShow AddLikeCount(int count)
         {
             LikeCount += count;
+            if (LikeCount <= 0) LikeCount = 0;
             AddDomainEventIfAbsent(new YouShowUpdateEvent
-                (Id, LikeCount, YouShowUpdateEventType.AddLikeCount));
-            AddDomainEventIfAbsent(new UserDataUpdateEvent(UserId,count,UserDataUpdateEventType.UpdateGetLikeCount)); // 更新用户总获赞
+                (Id, LikeCount, YouShowUpdateEventType.AddLikeCount)); // 更新用户点赞数量
+            AddDomainEventIfAbsent(new UserDataUpdateEvent(UserId,count,UserDataUpdateEventType.UpdateGetLikeCount)); // 更新用户总获赞数量
             return this;
         }
 
         public YouShow AddStarCount(int count)
         {
             StarCount += count;
+            if (StarCount <= 0) StarCount = 0;
             AddDomainEventIfAbsent(new YouShowUpdateEvent
-                (Id, StarCount, YouShowUpdateEventType.AddStarCount));
+                (Id, StarCount, YouShowUpdateEventType.AddStarCount)); // 更新用户收藏数量
             return this;
         }
 

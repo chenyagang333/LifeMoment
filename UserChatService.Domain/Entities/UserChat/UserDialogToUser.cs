@@ -16,7 +16,8 @@ namespace UserChatService.Domain.Entities.UserChat
             long UserDialogId,  // 用户会话ID  UserId的复合索引
             long ToUserId,  // 对话 用户ID // 加索引，用来更新冗余数据
             string ToUserName, // 对话 用户名称 // 冗余
-            string ToUserAvatar  // 对话 用户头像 // 冗余
+            string ToUserAvatar,  // 对话 用户头像 // 冗余
+            DateTime LastReadTime // 最后读取消息时间
         ) : BaseEntity, IHasCreateTime, IHasDeleteTime,ISoftDelete
     {
 

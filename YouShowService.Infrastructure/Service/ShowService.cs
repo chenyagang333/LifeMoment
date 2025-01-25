@@ -1,31 +1,21 @@
 ﻿using AutoMapper;
 using Chen.Commons;
+using Chen.Commons.ApiResult;
 using Chen.Commons.ApiResult.Generic;
 using Chen.Commons.FunResult;
-using Chen.DomainCommons;
 using Chen.DomainCommons.ConfigOptions;
 using Chen.JWT;
-using FileService.SDK.NETCore;
-using Humanizer;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 using YouShowService.Domain.DTO;
 using YouShowService.Domain.Entities;
+using YouShowService.Domain.Enums;
 using YouShowService.Domain.IRespository;
 using YouShowService.Domain.IService;
 using YouShowService.Domain.Options;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace YouShowService.Infrastructure.Service
 {
@@ -68,6 +58,8 @@ namespace YouShowService.Infrastructure.Service
             this.fileServerOptions = fileServerOptions;
         }
 
+        #region 作品查询
+
         public async Task<(List<YouShowDTO> dto, long count)> PagingQueryAsync(long userId, int pageSize, int pageIndex)
         {
             var (data, count) = await youShowRespository.PagingQueryAsync(pageSize, pageIndex);
@@ -97,7 +89,7 @@ namespace YouShowService.Infrastructure.Service
             return default;
 
         }
-        
+
         // 根据UserId查询
         /// <summary>
         /// 
@@ -179,6 +171,8 @@ namespace YouShowService.Infrastructure.Service
             return dto;
         }
 
+        #endregion
+
         public async Task<FunResult> CreateYouShowAsync(YouShow youShow)
         {
             await youShowRespository.CreateAsync(youShow);
@@ -215,7 +209,50 @@ namespace YouShowService.Infrastructure.Service
 
         }
 
-
+        public async Task<FunResult> PutActiveAsync(long userId, long youshowId, YouShowActive active, bool isActive)
+        {
+            var count = isActive ? 1 : -1;
+            if (isActive)
+            {
+                var entity = new YouShowStarUser(youshowId, userId).AddUserStarCount(1);
+                await ctx.YouShowStarUsers.AddAsync(entity);
+            }
+            else
+            {
+                if (active == YouShowActive.Like)
+                {
+                    var entity = await ctx.YouShowLikeUsers
+                        .FirstOrDefaultAsync(x => x.YouShowId == youshowId && x.UserId == userId);
+                    if (entity == null) return FunResult.Failed("已经取消点赞了");
+                    entity.AddUserLikeCount(count); // 通知Identity更新点赞数
+                    await ctx.SaveChangesAsync(); // 在这里要保存更改，避免Remove后无法触发AddUserStarCount内的领域事件
+                    ctx.YouShowLikeUsers.Remove(entity);
+                }
+                else if (active == YouShowActive.Star)
+                {
+                    var entity = await ctx.YouShowStarUsers
+                        .FirstOrDefaultAsync(x => x.YouShowId == youshowId && x.UserId == userId);
+                    if (entity == null) return FunResult.Failed("已经取消收藏了");
+                    entity.AddUserStarCount(count);
+                    await ctx.SaveChangesAsync(); // 在这里要保存更改，避免Remove后无法触发AddUserStarCount内的领域事件
+                    ctx.YouShowStarUsers.Remove(entity);
+                }
+            }
+            StringBuilder description = new(isActive ? "" : "取消");
+            var youshow = await youShowRespository.QueryByIdAsync(youshowId);
+            if (active == YouShowActive.Like)
+            {
+                youshow!.AddLikeCount(count);
+                description.Append("点赞");
+            }
+            else if (active == YouShowActive.Star)
+            {
+                youshow!.AddStarCount(count);
+                description.Append("收藏");
+            }
+            description.Append("成功！");
+            return FunResult.Succeed(description.ToString());
+        }
 
 
 

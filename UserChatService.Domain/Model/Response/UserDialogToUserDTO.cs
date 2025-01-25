@@ -11,7 +11,7 @@ namespace UserChatService.Domain.Model.Response
 {
     public record UserDialogToUserDTO : UserDialogToUser
     {
-        public UserDialogToUserDTO() : base(0, 0, 0, "", "")
+        public UserDialogToUserDTO() : base(0, 0, 0, "", "", default)
         {
 
         }
